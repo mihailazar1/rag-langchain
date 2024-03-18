@@ -1,0 +1,10 @@
+azure_storage==0.36.0
+langchain
+python-dotenv
+unstructured
+azure-search
+azure-search-documents
+InstructorEmbedding
+torch
+sentence-transformers==2.2.2
+setuptools
