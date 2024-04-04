@@ -12,7 +12,9 @@ load_dotenv()
 directory_path = "Data"
 
 
-blob_service_client = BlobServiceClient.from_connection_string(os.environ.get('STORAGE_CONNECTION_STRING'))
+
+
+blob_service_client = BlobServiceClient.from_connection_string()
 
 def write_files_to_blob():
     for root, dirs, files in os.walk(directory_path):

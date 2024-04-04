@@ -10,6 +10,14 @@ from langchain_community.embeddings import HuggingFaceInstructEmbeddings
 
 from cognitive_search import get_similar_content, get_specific_index_ids, delete_index_chunks_by_id
 
+# For the LLM
+from huggingface_hub import hf_hub_download
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, AutoModelForSeq2SeqLM
+
+from model import get_model_response
+
+
+
 def create_app():
     application = Flask(__name__)
 
@@ -17,19 +25,26 @@ def create_app():
                                                       model_kwargs={"device": "cuda"})
 
 
-    vector_store: AzureSearch = AzureSearch(
+    application.vector_store = AzureSearch(
         azure_search_endpoint=os.environ.get('AZURE_COGNITIVE_SEARCH_ADDRESS'),
         azure_search_key=os.environ.get('AZURE_COGNITIVE_SEARCH_API_KEY'),
         index_name=os.environ.get('AZURE_COGNITIVE_SEARCH_INDEX_NAME'),
         embedding_function=instructor_embeddings.embed_query
-    )    
+    ) 
+
+    application.tokenizer = AutoTokenizer.from_pretrained('stabilityai/stablelm-zephyr-3b')
+    application.model = AutoModelForCausalLM.from_pretrained(
+        'stabilityai/stablelm-zephyr-3b',
+        device_map="auto"
+    )
+
 
     @application.route("/api/query_specific", methods=["GET"])
     def query_specific():
         input_query = request.args.get('query')
         source_file = request.args.get('document')
         
-        docs = get_similar_content(input_query, vector_store)
+        docs = get_similar_content(input_query, application.vector_store)
 
         response = {'content': {}, 'metadata': {}}
 
@@ -47,7 +62,8 @@ def create_app():
     def query():
         input_query = request.args.get('query')
         
-        docs = get_similar_content(input_query, vector_store)
+        docs = get_similar_content(input_query, application.vector_store)
+        
 
         response = {'content': {}, 'metadata': {}}
 
@@ -78,6 +94,22 @@ def create_app():
             response = {'result': f'Error: {str(e)}'}
             return jsonify(response)
         
+
+        
+    @application.route("/api/queryllm", methods=["GET"])
+    def queryllm():
+        input_query = request.args.get('query')
+        
+        content = get_model_response(input_query, application.vector_store, application.model, application.tokenizer)
+
+
+        response = {
+            'content': content,
+        }
+
+
+        return jsonify(response)
+
     return application
 
 
