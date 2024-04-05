@@ -14,7 +14,7 @@ directory_path = "Data"
 
 
 
-blob_service_client = BlobServiceClient.from_connection_string()
+blob_service_client = BlobServiceClient.from_connection_string(STORAGE_CONNECTION_STRING)
 
 def write_files_to_blob():
     for root, dirs, files in os.walk(directory_path):

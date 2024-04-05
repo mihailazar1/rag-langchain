@@ -52,8 +52,6 @@ def get_model_response(user_query: str, vector_store: AzureSearch, model: AutoMo
 
     return result
 
-def fun():
-    pass
 
 
 

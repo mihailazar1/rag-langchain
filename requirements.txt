@@ -8,3 +8,4 @@ InstructorEmbedding
 torch
 sentence-transformers==2.2.2
 setuptools
+Flask-SQLAlchemy
